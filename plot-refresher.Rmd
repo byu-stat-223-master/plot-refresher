@@ -1,0 +1,81 @@
+---
+title: "Plotting in R"
+output: html_notebook
+---
+
+```{r setup}
+# Packages ----
+library(tidyverse)
+library(magick)
+
+# Data ----
+set.seed(35487)
+x = 1:50
+y = sin(x) + rnorm(length(x))
+lower = y - runif(length(y))
+upper = y + runif(length(y))
+```
+
+## Base Plotting
+```{r}
+plot(x, y, type = 'l')
+lines(x, lower, lty = 2, col = 'royalblue')
+lines(x, upper, lty = 2, col = 'firebrick')
+```
+
+## ggplot2
+```{r}
+plot_data <- tibble(x, y, lower, upper)
+
+(p <- ggplot(plot_data, aes(x = x, y = y)) +
+  geom_line())
+```
+
+```{r}
+(p <- p +
+   geom_line(aes(y = lower), lty = 2, col = "royalblue"))
+```
+
+```{r}
+(p <- p +
+   geom_line(aes(y = upper), lty = 2, col = "firebrick"))
+```
+
+```{r}
+(p <- p +
+   theme_bw())
+```
+
+```{r}
+ggplot(plot_data, aes(x = x)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = "red", alpha = .2) +
+  geom_line(aes(y = y)) +
+  theme_bw() +
+  labs(
+    title = "Random Walk with Errors",
+    subtitle = "A plot from ggplot2",
+    x = "X values",
+    y = "Y values",
+    caption = "No data were harmed in the making of this plot"
+  )
+
+ggsave("fancy-plot.png")
+```
+
+## Magick
+* Doesn't work in RStudio Cloud
+```{r}
+background <- image_read("fancy-plot.png")
+
+gif <- image_read("https://media.giphy.com/media/jUW4973XDKPclrUQCd/giphy.gif")
+
+frames <- lapply(gif, function(frame) {
+  image_composite(background, frame, offset = "+70+800")
+})
+
+animation <- image_animate(image_join(frames))
+
+image_write(animation, "awesome.gif")
+```
+
+
